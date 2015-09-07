@@ -727,6 +727,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
             int configValue;
 
             serialOptions = (int)argv[4] | ((int)argv[5] << 7);
+            configValue = getSerialConfigValue(serialOptions);
 
             if (portId > 7 && argc > 6) {
               rxPin = argv[6];
@@ -744,8 +745,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
                   // because all Arduino pins are set to OUTPUT by default in StandardFirmata.
                   pinMode(pins.rx, INPUT);
                 }
-                if (serialOptions != 0) {
-                  configValue = getSerialConfigValue(serialOptions);
+                if (configValue >= 0) {
 // SAM core Arduinos use either UARTClass and USARTClass depending on the configuration
 #if defined(_UART_CLASS_) && defined(_USART_CLASS_)
                   if (configValue == SERIAL_8N1 || configValue == SERIAL_8E1 ||
@@ -755,8 +755,11 @@ void sysexCallback(byte command, byte argc, byte *argv)
                   } else {
                     ((USARTClass*)serialPort)->begin(baud, (USARTClass::USARTModes)configValue);
                   }
-#else
+// if a board doesn't support default options, assume it does not accept a config parameter
+#elif defined(SERIAL_8N1)
                   ((HardwareSerial*)serialPort)->begin(baud, configValue);
+#else
+                  ((HardwareSerial*)serialPort)->begin(baud);
 #endif
                 } else {
                   ((HardwareSerial*)serialPort)->begin(baud);

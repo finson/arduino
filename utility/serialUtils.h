@@ -124,7 +124,7 @@ inline serial_pins getSerialPinNumbers(uint8_t portId) {
 /*
  * Get the Arduino serial config value.
  */
-inline uint16_t getSerialConfigValue(uint16_t serialOptions) {
+inline int16_t getSerialConfigValue(uint16_t serialOptions) {
   uint8_t dataBits, parity, stopBits;
   dataBits = (serialOptions & SERIAL_DATA_BITS_MASK) >> 5;
   parity = (serialOptions & SERIAL_PARITY_MASK) >> 2;
@@ -137,136 +137,215 @@ inline uint16_t getSerialConfigValue(uint16_t serialOptions) {
     case 0:
       if (stopBits == 0) {
         switch (dataBits) {
+// because various boards only support a subset of the config options,
+// all of these ifdefs are necessary
+#if defined(SERIAL_5N1)
           case 5:
             return SERIAL_5N1;
+#endif
+#if defined(SERIAL_6N1)
           case 6:
             return SERIAL_6N1;
+#endif
+#if defined(SERIAL_7N1)
           case 7:
             return SERIAL_7N1;
+#endif
+#if defined(SERIAL_8N1)
           case 8:
             return SERIAL_8N1;
+#endif
         }
       } else if (stopBits == 2) {
         switch (dataBits) {
+#if defined(SERIAL_5N2)
           case 5:
             return SERIAL_5N2;
+#endif
+#if defined(SERIAL_6N2)
           case 6:
             return SERIAL_6N2;
+#endif
+#if defined(SERIAL_7N2)
           case 7:
             return SERIAL_7N2;
+#endif
+#if defined(SERIAL_8N2)
           case 8:
             return SERIAL_8N2;
+#endif
         }
       }
       break;
     case 1:
       if (stopBits == 0) {
         switch (dataBits) {
+#if defined(SERIAL_5E1)
           case 5:
             return SERIAL_5E1;
+#endif
+#if defined(SERIAL_6E1)
           case 6:
             return SERIAL_6E1;
+#endif
+#if defined(SERIAL_7E1)
           case 7:
             return SERIAL_7E1;
+#endif
+#if defined(SERIAL_8E1)
           case 8:
             return SERIAL_8E1;
+#endif
         }
       } else if (stopBits == 2) {
         switch (dataBits) {
+#if defined(SERIAL_5E2)
           case 5:
             return SERIAL_5E2;
+#endif
+#if defined(SERIAL_6E2)
           case 6:
             return SERIAL_6E2;
+#endif
+#if defined(SERIAL_7E2)
           case 7:
             return SERIAL_7E2;
+#endif
+#if defined(SERIAL_8E2)
           case 8:
             return SERIAL_8E2;
+#endif
         }
       }
       break;
     case 2:
       if (stopBits == 0) {
         switch (dataBits) {
+#if defined(SERIAL_5O1)
           case 5:
             return SERIAL_5O1;
+#endif
+#if defined(SERIAL_6O1)
           case 6:
             return SERIAL_6O1;
+#endif
+#if defined(SERIAL_7O1)
           case 7:
             return SERIAL_7O1;
+#endif
+#if defined(SERIAL_8O1)
           case 8:
             return SERIAL_8O1;
+#endif
         }
       } else if (stopBits == 2) {
         switch (dataBits) {
+#if defined(SERIAL_5O2)
           case 5:
             return SERIAL_5O2;
+#endif
+#if defined(SERIAL_6O2)
           case 6:
             return SERIAL_6O2;
+#endif
+#if defined(SERIAL_7O2)
           case 7:
             return SERIAL_7O2;
+#endif
+#if defined(SERIAL_8O2)
           case 8:
             return SERIAL_8O2;
+#endif
         }
       }
       break;
-#if defined(ARDUINO_ARCH_SAM)
     case 3:
-      // Only available for SAM core Arduino boards
+      // Currently only available for SAM core Arduino boards
       if (stopBits == 0) {
         switch (dataBits) {
+#if defined(SERIAL_5M1)
           case 5:
             return SERIAL_5M1;
+#endif
+#if defined(SERIAL_6M1)
           case 6:
             return SERIAL_6M1;
+#endif
+#if defined(SERIAL_7M1)
           case 7:
             return SERIAL_7M1;
+#endif
+#if defined(SERIAL_8M1)
           case 8:
             return SERIAL_8M1;
+#endif
         }
       } else if (stopBits == 2) {
         switch (dataBits) {
+#if defined(SERIAL_5M2)
           case 5:
             return SERIAL_5M2;
+#endif
+#if defined(SERIAL_6M2)
           case 6:
             return SERIAL_6M2;
+#endif
+#if defined(SERIAL_7M2)
           case 7:
             return SERIAL_7M2;
+#endif
+#if defined(SERIAL_8M2)
           case 8:
             return SERIAL_8M2;
+#endif
         }
       }
       break;
     case 4:
-      // Only available for SAM core Arduino boards
+      // Currently only available for SAM core Arduino boards
       if (stopBits == 0) {
         switch (dataBits) {
+#if defined(SERIAL_5S1)
           case 5:
             return SERIAL_5S1;
+#endif
+#if defined(SERIAL_6S1)
           case 6:
             return SERIAL_6S1;
+#endif
+#if defined(SERIAL_7S1)
           case 7:
             return SERIAL_7S1;
+#endif
+#if defined(SERIAL_8S1)
           case 8:
             return SERIAL_8S1;
+#endif
         }
       } else if (stopBits == 2) {
         switch (dataBits) {
+#if defined(SERIAL_5S2)
           case 5:
             return SERIAL_5S2;
+#endif
+#if defined(SERIAL_6S2)
           case 6:
             return SERIAL_6S2;
+#endif
+#if defined(SERIAL_7S2)
           case 7:
             return SERIAL_7S2;
+#endif
+#if defined(SERIAL_8S2)
           case 8:
             return SERIAL_8S2;
+#endif
         }
       }
       break;
-#endif
   }
 
-  // default
-  return SERIAL_8N1;
+  return -1;
 }
 
 #endif /* SERIAL_UTILS_H */
