@@ -9,7 +9,7 @@
 
   See file LICENSE.txt for further informations on licensing terms.
 
-  Last update August 23rd, 2015
+  Last update September 6th, 2015
 */
 
 #ifndef SERIAL_UTILS_H
@@ -20,11 +20,13 @@
 #define HW_SERIAL1                  0x01
 #define HW_SERIAL2                  0x02
 #define HW_SERIAL3                  0x03
+// extensible up to 0x07
 
 #define SW_SERIAL0                  0x08
 #define SW_SERIAL1                  0x09
 #define SW_SERIAL2                  0x0A
 #define SW_SERIAL3                  0x0B
+// extensible up to 0x0F
 
 #define SERIAL_PORT_ID_MASK         0x0F
 #define MAX_SERIAL_PORTS            8
@@ -50,6 +52,11 @@
 #define SERIAL_READ_CONTINUOUSLY    0x00
 #define SERIAL_STOP_READING         0x01
 #define SERIAL_MODE_MASK            0xF0
+
+// Serial options bit masks
+#define SERIAL_DATA_BITS_MASK       0x01E0
+#define SERIAL_PARITY_MASK          0x001C
+#define SERIAL_STOP_BITS_MASK       0x0003
 
 struct serial_pins {
   uint8_t rx;
@@ -112,6 +119,154 @@ inline serial_pins getSerialPinNumbers(uint8_t portId) {
       pins.tx = 0;
   }
   return pins;
+}
+
+/*
+ * Get the Arduino serial config value.
+ */
+inline uint16_t getSerialConfigValue(uint16_t serialOptions) {
+  uint8_t dataBits, parity, stopBits;
+  dataBits = (serialOptions & SERIAL_DATA_BITS_MASK) >> 5;
+  parity = (serialOptions & SERIAL_PARITY_MASK) >> 2;
+  stopBits = (serialOptions & SERIAL_STOP_BITS_MASK); // 0 = 1, 1 = 1.5, 2 = 2
+
+  // Arduino does not support 1.5 stop bits so only configurations with 1 and 2 stop bits
+  // are returned here
+
+  switch (parity) {
+    case 0:
+      if (stopBits == 0) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5N1;
+          case 6:
+            return SERIAL_6N1;
+          case 7:
+            return SERIAL_7N1;
+          case 8:
+            return SERIAL_8N1;
+        }
+      } else if (stopBits == 2) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5N2;
+          case 6:
+            return SERIAL_6N2;
+          case 7:
+            return SERIAL_7N2;
+          case 8:
+            return SERIAL_8N2;
+        }
+      }
+      break;
+    case 1:
+      if (stopBits == 0) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5E1;
+          case 6:
+            return SERIAL_6E1;
+          case 7:
+            return SERIAL_7E1;
+          case 8:
+            return SERIAL_8E1;
+        }
+      } else if (stopBits == 2) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5E2;
+          case 6:
+            return SERIAL_6E2;
+          case 7:
+            return SERIAL_7E2;
+          case 8:
+            return SERIAL_8E2;
+        }
+      }
+      break;
+    case 2:
+      if (stopBits == 0) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5O1;
+          case 6:
+            return SERIAL_6O1;
+          case 7:
+            return SERIAL_7O1;
+          case 8:
+            return SERIAL_8O1;
+        }
+      } else if (stopBits == 2) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5O2;
+          case 6:
+            return SERIAL_6O2;
+          case 7:
+            return SERIAL_7O2;
+          case 8:
+            return SERIAL_8O2;
+        }
+      }
+      break;
+#if defined(ARDUINO_ARCH_SAM)
+    case 3:
+      // Only available for SAM core Arduino boards
+      if (stopBits == 0) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5M1;
+          case 6:
+            return SERIAL_6M1;
+          case 7:
+            return SERIAL_7M1;
+          case 8:
+            return SERIAL_8M1;
+        }
+      } else if (stopBits == 2) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5M2;
+          case 6:
+            return SERIAL_6M2;
+          case 7:
+            return SERIAL_7M2;
+          case 8:
+            return SERIAL_8M2;
+        }
+      }
+      break;
+    case 4:
+      // Only available for SAM core Arduino boards
+      if (stopBits == 0) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5S1;
+          case 6:
+            return SERIAL_6S1;
+          case 7:
+            return SERIAL_7S1;
+          case 8:
+            return SERIAL_8S1;
+        }
+      } else if (stopBits == 2) {
+        switch (dataBits) {
+          case 5:
+            return SERIAL_5S2;
+          case 6:
+            return SERIAL_6S2;
+          case 7:
+            return SERIAL_7S2;
+          case 8:
+            return SERIAL_8S2;
+        }
+      }
+      break;
+#endif
+  }
+
+  // default
+  return SERIAL_8N1;
 }
 
 #endif /* SERIAL_UTILS_H */

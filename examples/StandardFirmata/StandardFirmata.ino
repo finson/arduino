@@ -20,7 +20,7 @@
 
   See file LICENSE.txt for further informations on licensing terms.
 
-  Last updated by Jeff Hoefs: August 9th, 2015
+  Last updated by Jeff Hoefs: September 6th, 2015
 */
 
 #include <Servo.h>
@@ -76,7 +76,7 @@ Stream *swSerial3 = NULL;
 
 byte reportSerial[MAX_SERIAL_PORTS];
 int serialBytesToRead[12];
-signed char serialIndex = -1;
+signed char serialIndex;
 
 /* i2c data */
 struct i2c_device_info {
@@ -723,8 +723,10 @@ void sysexCallback(byte command, byte argc, byte *argv)
             long baud = (long)argv[1] | ((long)argv[2] << 7) | ((long)argv[3] << 14);
             byte txPin, rxPin;
             serial_pins pins;
+            int serialOptions = 0;
+            int configValue;
 
-            serialBytesToRead[portId] = (int)argv[4] | ((int)argv[5] << 7);
+            serialOptions = (int)argv[4] | ((int)argv[5] << 7);
 
             if (portId > 7 && argc > 6) {
               rxPin = argv[6];
@@ -742,7 +744,23 @@ void sysexCallback(byte command, byte argc, byte *argv)
                   // because all Arduino pins are set to OUTPUT by default in StandardFirmata.
                   pinMode(pins.rx, INPUT);
                 }
-                ((HardwareSerial*)serialPort)->begin(baud);
+                if (serialOptions != 0) {
+                  configValue = getSerialConfigValue(serialOptions);
+// SAM core Arduinos use either UARTClass and USARTClass depending on the configuration
+#if defined(_UART_CLASS_) && defined(_USART_CLASS_)
+                  if (configValue == SERIAL_8N1 || configValue == SERIAL_8E1 ||
+                      configValue == SERIAL_8O1 || configValue == SERIAL_8M1 ||
+                      configValue == SERIAL_8S1) {
+                    ((UARTClass*)serialPort)->begin(baud, (UARTClass::UARTModes)configValue);
+                  } else {
+                    ((USARTClass*)serialPort)->begin(baud, (USARTClass::USARTModes)configValue);
+                  }
+#else
+                  ((HardwareSerial*)serialPort)->begin(baud, configValue);
+#endif
+                } else {
+                  ((HardwareSerial*)serialPort)->begin(baud);
+                }
               }
             } else {
 #if defined(SoftwareSerial_h)
@@ -796,6 +814,15 @@ void sysexCallback(byte command, byte argc, byte *argv)
             if (serialIndex + 1 >= MAX_SERIAL_PORTS) {
               break;
             }
+
+            if (argc > 2) {
+              // maximum number of bytes to read from buffer per iteration
+              serialBytesToRead[portId] = (int)argv[2] | ((int)argv[3] << 7);
+            } else {
+              // read all available bytes per iteration
+              serialBytesToRead[portId] = 0;
+            }
+
             serialIndex++;
             reportSerial[serialIndex] = portId;
           } else if (argv[1] == SERIAL_STOP_READING) {
@@ -908,6 +935,10 @@ void systemResetCallback()
   }
 #endif
   serialIndex = -1;
+
+  for (byte i = 0; i < 12; i++) {
+    serialBytesToRead[i] = 0;
+  }
 
   for (byte i = 0; i < TOTAL_PORTS; i++) {
     reportPINs[i] = false;    // by default, reporting off
