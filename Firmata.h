@@ -90,6 +90,9 @@ extern "C" {
   typedef void (*sysexCallbackFunction)(byte command, byte argc, byte *argv);
 }
 
+#ifdef OPT_ENABLE_SYSEX_HOOK
+extern sysexCallbackFunction currentSysexHookCallback;
+#endif
 
 // TODO make it a subclass of a generic Serial/Stream base class
 class FirmataClass
