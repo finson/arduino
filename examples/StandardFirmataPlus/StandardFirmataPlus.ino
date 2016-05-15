@@ -23,9 +23,29 @@
   Last updated by Jeff Hoefs: January 10th, 2016
 */
 
+/*
+  README
+
+  StandardFirmataPlus adds additional features that may exceed the Flash and
+  RAM sizes of Arduino boards such as ATMega328p (Uno) and ATMega32u4
+  (Leonardo, Micro, Yun, etc). It is best to use StandardFirmataPlus with higher
+  memory boards such as the Arduino Mega, Arduino Due, Teensy 3.0/3.1/3.2.
+
+  All Firmata examples that are appended with "Plus" add the following features:
+
+  - Ability to interface with serial devices using UART, USART, or SoftwareSerial
+    depending on the capatilities of the board.
+
+  At the time of this writing, StandardFirmataPlus will still compile and run
+  on ATMega328p and ATMega32u4-based boards, but future versions of this sketch
+  may not as new features are added.
+*/
+
 #include <Servo.h>
 #include <Wire.h>
 #include <Firmata.h>
+
+#include "utility/SerialFirmata.h"
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -756,6 +776,9 @@ void setup()
   Firmata.attach(SET_DIGITAL_PIN_VALUE, setPinValueCallback);
   Firmata.attach(START_SYSEX, sysexCallback);
   Firmata.attach(SYSTEM_RESET, systemResetCallback);
+
+  // Save a couple of seconds by disabling the startup blink sequence.
+  Firmata.disableBlinkVersion();
 
   // to use a port other than Serial, such as Serial1 on an Arduino Leonardo or Mega,
   // Call begin(baud) on the alternate serial port and pass it to Firmata to begin like this:
